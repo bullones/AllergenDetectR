@@ -26,7 +26,7 @@ Previous to the execution of this script, you need to download the two databases
 ![Advanced Search options to download the <i>Non-olive allergens DB</i>](non_olive_allergens_DB.png)
     1. Download the FASTA file with the protein sequences. At the moment of writing this protocol (March 5, 2024), there were 1,236 reviewed and 3,062 unreviewed for a total of 4,298 proteins corresponding to allergens described in other species.
     
-You will also need to download DIAMOND software following the GitHub instructions: <https://github.com/bbuchfink/diamond>.
+You will also need to download DIAMOND software following the GitHub instructions: <https://github.com/bbuchfink/diamond/wiki>.
 
 ```{r variables, include=FALSE}
 # percentage of identical positions threshold used to detect new allergens
