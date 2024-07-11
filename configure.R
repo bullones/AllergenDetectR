@@ -1,5 +1,5 @@
 # configuration file for AllergenDetectR
-# 24/06/10
+# 24/07/11
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # DON'T TOUCH: CLEAN START ####
@@ -28,7 +28,7 @@ PKG_UPDATE = FALSE
 # You should include here the path where the code can be found on your computer
 #
 # Example:
-#   SOURCE_DIR = "~/usr/local/mycodingfiles/"
+#   SOURCE_DIR = "~/usr/local/mycodingfiles"
 
 SOURCE_DIR = "~/datos_bullones/Bioinformatica/Script/Script_R/AllergenDetectR"
 # ///////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ SOURCE_DIR = "~/datos_bullones/Bioinformatica/Script/Script_R/AllergenDetectR"
 # Output files and folders will be created there
 #
 # Example:
-#   WD_DIR = "~/Documents/My_MA_data/this_experiment/"
+#   WD_DIR = "~/Documents/My_MA_data/this_experiment"
 
 WD_DIR = "/home/bullones/datos_bullones/Bioinformatica/alergenos/detect_new_allergens/script_R"
 # //////////////////////////////////////
