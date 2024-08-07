@@ -1,3 +1,4 @@
+<div style="text-align: justify">
 # AllergenDetectR
 
 R workflow to detect new pollen allergens
@@ -21,3 +22,4 @@ Previous to the execution of this script, you need to download the two databases
 	![alt text](non_olive_allergens_DB.png)
 	1. Download the FASTA file with the protein sequences.
 1. You will also need to download DIAMOND software following the GitHub instructions: <https://github.com/bbuchfink/diamond/wiki>.
+</div>
