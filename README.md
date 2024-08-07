@@ -1,7 +1,5 @@
 # AllergenDetectR
 
-<p align="justify">
-
 R workflow to detect new pollen allergens
 
 ***
@@ -52,5 +50,3 @@ Please, reference this pipeline and its documentation as follows:
 **Authors**: Amanda Bullones, M. Gonzalo Claros and Rosario Carmona
 
 Any concern, suggestion, bug or whatelse can be addressed to [Amanda Bullones](mailto:amandabullones@uma.es)
-
-</p>
