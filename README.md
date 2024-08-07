@@ -13,3 +13,11 @@ Previous to the execution of this script, you need to download the two databases
 	1. In the search toolbar select "Advanced".
 	1. Fill the form:
 	![alt text](olive_allergens_DB.png)
+	1. Download the FASTA file with the protein sequences.
+1. <i>Non-study organism allergens DB</i>.
+	1. Go to <https://www.uniprot.org/>.
+	1. In the search toolbar select "Advanced".
+	1. Fill the form:
+	![alt text](non_olive_allergens_DB.png)
+	1. Download the FASTA file with the protein sequences.
+1. You will also need to download DIAMOND software following the GitHub instructions: <https://github.com/bbuchfink/diamond/wiki>.
