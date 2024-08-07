@@ -12,3 +12,4 @@ Previous to the execution of this script, you need to download the two databases
 	1. Go to <https://www.uniprot.org/>.
 	1. In the search toolbar select "Advanced".
 	1. Fill the form:
+	![alt text](olive_allergens_DB.png)
