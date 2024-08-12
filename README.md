@@ -65,7 +65,38 @@ Then you can navigate inside _AllergenDetectR_ using shell comands or window int
 
 ## Output files
 
-Each execution of
+Each execution of _AllergenDetectR_ create a separate folder at the `WD_DIR` folder. The new folder will be called:
+
+> `results_{FASTA_TYPE}_{DATATIME}`
+
+where `{FASTA_TYPE}` indicates the type of DIAMOND that has been launched (blastp for proteins and blastn for nucleotides), and `{DATATIME}` is the date and time of execution to guarantee that a different folder is created on every execution.
+
+The folder will contain:
+
+* An interactive **HTML report** called ` Report.html` with the results and explanation of each saved file.
+* **Eight tables in `tsv` format** for DIAMOND results (before and after filtering).
+	+ `diamond_allergens.tsv`:
+	+ `diamond_allergens_filtered.tsv`:
+	+ `diamond_{SP}.tsv`:
+	+ `diamond_{SP}_filtered.tsv`:
+	+ `diamond_{SP}_known_allergens.tsv`:
+	+ `diamond_{SP}_known_allergens_filtered.tsv`:
+	+ `diamond_no_{SP}.tsv`:
+	+ `diamond_no_{SP}_filtered.tsv`:
+* **Three FASTA files** to save the protein of interest sequences.
+	+ `proteins_isoforms.fasta`:
+	+ `proteins_new_allergens.fasta`:
+	+ `proteins_with_allergen.fasta`:
+* **Two FASTA files** to save the proteins that are known allergens of the study organism, and those that are not known allergens of the study organism.
+	+ `proteome_pollen_{SP}_known_allergens.fasta`:
+	+ `proteome_pollen_no_{SP}_known_allergens.fasta`:
+* **Two DIAMOND-formated databases** needed for the DIAMOND analyses.
+	+ `allergens_{SP}_db.dmnd`:
+	+ `allergens_no_{SP}_db.dmnd`:
+* **One DIAMOND error file** to track possible errors.
+	+ `diamond.err`:
+
+where `{SP}` indicates the study organism.
 
 ***
 
