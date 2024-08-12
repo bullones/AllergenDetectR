@@ -4,6 +4,19 @@ R workflow to detect new pollen allergens
 
 ***
 
+## Table of contents
+
+* [Prerequisites](#prerequisites)
+* [Installation](#installation)
+* [Components](#components)
+* [Configuration](#configuration)
+* [Input files](#input-files)
+* [Output files](#output-files)
+* [Citation](#citation)
+* [License](#license)
+
+***
+
 ## Prerequisites
 
 Previous to the execution of this script, you need to download the two databases needed:
@@ -24,7 +37,7 @@ Previous to the execution of this script, you need to download the two databases
 
 ***
 
-## Install
+## Installation
 
 You will need a local copy of the GitHub _AllergenDetectR_ repository on your machine. It can be done using git in the shell:
 
@@ -35,6 +48,26 @@ git clone git@github.com:bullones/AllergenDetectR.git
 Alternatively, you can go to <https://github.com/bullones/AllergenDetectR/> and click on _Code_ button and then _Clone_, or select _Download ZIP_ or any other possibility you prefer. The cloned of unzipped directory `AllergenDetectR` should be placed somewhere on your `$HOME` in Linux, macOS and Windows.
 
 Then you can navigate inside _AllergenDetectR_ using shell comands or window interface.
+
+***
+
+## Components
+
+***
+
+## Configuration
+
+***
+
+## Input files
+
+***
+
+## Output files
+
+Each execution of
+
+***
 
 ## Citation
 
