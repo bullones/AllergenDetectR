@@ -12,30 +12,30 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Previous to the execution of this script, you need to download the two databases needed:
 
-1. <i>Olive allergens DB</i>: All the <i>Olea europaea</i> protein sequences available in [UniProt](https://www.uniprot.org/) that has at least one cross reference to the [Allergome](https://www.uniprot.org/) database.
+1. _Study organism allergens DB_: All the study organism protein sequences available in [UniProt](https://www.uniprot.org/) that have at least one cross reference to the [Allergome](https://www.uniprot.org/) database.
     1. Go to <https://www.uniprot.org/>.
     1. In the search toolbar select "Advanced".
     1. Fill the form:
-![Advanced Search options to download the <i>Olive allergens DB</i>](olive_allergens_DB.png)
-    1. Download the FASTA file with the protein sequences. At the moment of writing this protocol (March 5, 2024), there were 74 reviewed and 35 unreviewed for a total of 109 proteins corresponding to the 15 olive allergens identified to date.
+![alt text](olive_allergens_DB.png)
+    1. Download the FASTA file with the protein sequences.
 
-1. <i>Non-olive allergens DB</i>.
+1. _Non-study organism allergens DB_.
     1. Go to <https://www.uniprot.org/>.
     1. In the search toolbar select "Advanced".
     1. Fill the form:
-![Advanced Search options to download the <i>Non-olive allergens DB</i>](non_olive_allergens_DB.png)
-    1. Download the FASTA file with the protein sequences. At the moment of writing this protocol (March 5, 2024), there were 1,236 reviewed and 3,062 unreviewed for a total of 4,298 proteins corresponding to allergens described in other species.
-    
-You will also need to download DIAMOND software following the GitHub instructions: <https://github.com/bbuchfink/diamond/wiki>.
+![alt text](non_olive_allergens_DB.png)
+    1. Download the FASTA file with the protein sequences.
+
+1. You will also need to download DIAMOND software following the GitHub instructions: <https://github.com/bbuchfink/diamond/wiki>.
 
 ```{r variables, include=FALSE}
 # percentage of identical positions threshold used to detect new allergens
 p_ident=40
 # percentage of alignment threshold used to detect new allergens
 p_align=40
-# percentage of identical position threshold used to discard the olive known allergens
+# percentage of identical position threshold used to discard the study organism known allergens
 oleur_ident=80
-# percentage of alignment threshold used to discard the olive known allergens
+# percentage of alignment threshold used to discard the study organism known allergens
 oleur_align=80
 # percentage of identical position threshold used to detect distant isoforms
 iso_ident=60
@@ -44,32 +44,23 @@ iso_align=60
 #maximum e-value to report alignments
 evalue=1e-1
 # maximum number of target sequences to report alignments for
-# BLAST default is 100
-# maxtarg=10
 maxtarg=100
 # choose the sensitivity mode for DIAMOND
-## options:
-## sens_mode="--fast" # runs faster and finds hits of >90% identity
-## sens_mode="--mid-sensitive"
-## sens_mode="--sensitive" # full sensitivity for hits >40% identity
-## sens_mode="--more-sensitive"
-## sens_mode="--very-sensitive" # best sensitivity including the zone of <40% identity
-## sens_mode="--ultra-sensitive" # more sensitive
 sens_mode="--ultra-sensitive"
 ```
 
 # Customized variables
 
 ```{r, include=FALSE}
-if (fasta_type==1) fasta_file <- "proteome"
-if (fasta_type==2) fasta_file <- "transcriptome"
+if (FASTA_TYPE==1) fasta_file <- "proteome"
+if (FASTA_TYPE==2) fasta_file <- "transcriptome"
 ```
 
 Variable | Value
 :---     | :---
-Olive tree allergen DB | `r PATH_SUBJECT_ALLERGEN_OLEUR`
-Non-olive tree allergen DB | `r PATH_SUBJECT_ALLERGEN_NO_OLEUR`
-Olive pollen `r fasta_file` | `r PATH_TEST_PROTEOME`
+`r ORGANISM` allergen DB | `r PATH_SUBJECT_ALLERGEN_SP`
+Non-`r tolower(ORGANISM)` allergen DB | `r PATH_SUBJECT_ALLERGEN_NO_SP`
+`r ORGANISM` pollen `r fasta_file` | `r PATH_TEST_PROTEOME`
 
 # Create new folder to save results
 
@@ -83,38 +74,38 @@ message("In this execution, the results will be saved in ", RES_DIR)
 
 ```{r load_fasta}
 # load proteome/transcriptome FASTA
-if (fasta_type==2){
+if (FASTA_TYPE==2){
   myfasta <- readDNAStringSet(PATH_TEST_PROTEOME)
-} else if (fasta_type==1){
+} else if (FASTA_TYPE==1){
   myfasta <- readAAStringSet(PATH_TEST_PROTEOME)
 } else {
-  message("The olive pollen FASTA file couldn't be read")
+  message("The", ORGANISM, "pollen FASTA file couldn't be read")
 }
 # change FASTA IDs to remove annotations
 names(myfasta) <- gsub(" .*", "", names(myfasta))
 num_ini <- length(names(myfasta)) # proteins/transcripts of the reference for final table
-message(paste0("Your ", fasta_file, " contains ", num_ini, " IDs"))
+message("Your ", fasta_file, " contains ", num_ini, " IDs")
 ```
 
 ```{r result_files, include=FALSE}
 # names for the results files
-allergens_sp_db = "allergens_olea_db"
-allergens_no_sp_db = "allergens_no_olea_db"
-diamond_oleex = "diamond_oleex.tsv"
-diamond_oleex_filtered = "diamond_oleex_filtered.tsv"
-proteins_oleex = "proteins_oleex_ids.txt"
+allergens_sp_db = paste0("allergens_", tolower(ORGANISM), "_db")
+allergens_no_sp_db = paste0("allergens_no_", tolower(ORGANISM), "_db")
+diamond_oleex = paste0("diamond_", tolower(ORGANISM), "_known_allergens.tsv")
+diamond_oleex_filtered = paste0("diamond_", tolower(ORGANISM), "_known_allergens_filtered.tsv")
+proteins_oleex = paste0("proteins_", tolower(ORGANISM), "_known_allergens_ids.txt")
 proteins_total = "proteins_total_ids.txt"
-proteins_no_oleex = "proteins_no_oleex.txt"
-proteome_pollen_no_oleex = "proteome_pollen_no_oleex.fasta"
-proteome_pollen_oleex = "proteome_pollen_oleex.fasta"
+proteins_no_oleex = paste0("proteins_no_", tolower(ORGANISM), "_known_allergens.txt")
+proteome_pollen_no_oleex = paste0("proteome_pollen_no_", tolower(ORGANISM), "_known_allergens.fasta")
+proteome_pollen_oleex = paste0("proteome_pollen_", tolower(ORGANISM), "_known_allergens.fasta")
 diamond_allergens = "diamond_allergens.tsv"
 diamond_allergens_filtered = "diamond_allergens_filtered.tsv"
-diamond_no_oleur = "diamond_no_oleur.tsv"
-diamond_no_oleur_filtered = "diamond_no_oleur_filtered.tsv"
+diamond_no_oleur = paste0("diamond_no_", tolower(ORGANISM), ".tsv")
+diamond_no_oleur_filtered = paste0("diamond_no_", tolower(ORGANISM), "_filtered.tsv")
 proteins_with_allergen = "proteins_with_allergen_ids.txt"
 proteome_with_allergens = "proteins_with_allergen.fasta"
-diamond_oleur = "diamond_oleur.tsv"
-diamond_oleur_filtered = "diamond_oleur_filtered.tsv"
+diamond_oleur = paste0("diamond_", tolower(ORGANISM), ".tsv")
+diamond_oleur_filtered = paste0("diamond_", tolower(ORGANISM), "_filtered.tsv")
 proteome_isoforms = "proteins_isoforms.fasta"
 proteome_new = "proteins_new_allergens.fasta"
 ```
@@ -124,8 +115,8 @@ proteome_new = "proteins_new_allergens.fasta"
 Sys.setenv(RESULTS = RES_DIR)
 Sys.setenv(PATH_DIAMOND = path_diamond)
 Sys.setenv(MODE = blast_mode)
-Sys.setenv(ALLERGEN_OLEUR = PATH_SUBJECT_ALLERGEN_OLEUR)
-Sys.setenv(ALLERGEN_NO_OLEUR = PATH_SUBJECT_ALLERGEN_NO_OLEUR)
+Sys.setenv(ALLERGEN_SP = PATH_SUBJECT_ALLERGEN_SP)
+Sys.setenv(ALLERGEN_NO_SP = PATH_SUBJECT_ALLERGEN_NO_SP)
 Sys.setenv(FASTA_POLLEN = PATH_TEST_PROTEOME)
 Sys.setenv(THREADS = threads)
 Sys.setenv(EVALUE = evalue)
@@ -161,10 +152,6 @@ filter_blast <- function(i,
                          p,
                          a = 0,
                          s = 0){
-  ## testing function arguments
-  # message(paste0("p = ", p))
-  # message(paste0("a = ", a))
-  # message(paste0("s = ", s))
   if (b$pident[i] >= p && b$length[i] >= a) {
     local_ap <- round((b$length[i]*100/b$slen[i]), digits = 2)
     if (local_ap >= s) {
@@ -176,27 +163,27 @@ filter_blast <- function(i,
 } # end function
 ```
 
-# Detect known Oleur allergens (Ole e x)
+# Detect known `r ORGANISM` allergens
 
 ## Prepare database
 
-We will create the diamond-formatted database needed for DIAMOND execution using *Olive allergens DB* protein FASTA file.
+We will create the diamond-formatted database needed for DIAMOND execution using the *study organism allergens DB* protein FASTA file.
 
 ```{bash db}
 # create diamond-formatted databases
-$PATH_DIAMOND/diamond makedb --in $ALLERGEN_OLEUR --db $RESULTS/$ALLERGENS_SP_DB 2> $RESULTS/diamond.err > $RESULTS/diamond.out
+$PATH_DIAMOND/diamond makedb --in $ALLERGEN_SP --db $RESULTS/$ALLERGENS_SP_DB 2> $RESULTS/diamond.err
 ```
 
 ## Launch DIAMOND
 
 ```{bash blast_oleur}
-# running search with Ole e x allergens
-$PATH_DIAMOND/diamond $MODE --db $RESULTS/$ALLERGENS_SP_DB --query $FASTA_POLLEN --threads $THREADS --evalue $EVALUE --max-target-seqs $MAXTARG $SENSITIVITY --out $RESULTS/$DIAMOND_OLEEX --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score qframe qseq sseq qlen slen stitle --header simple 2>> $RESULTS/diamond.err 1>> $RESULTS/diamond.out
+# running search with known study organism allergens
+$PATH_DIAMOND/diamond $MODE --db $RESULTS/$ALLERGENS_SP_DB --query $FASTA_POLLEN --threads $THREADS --evalue $EVALUE --max-target-seqs $MAXTARG $SENSITIVITY --out $RESULTS/$DIAMOND_OLEEX --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score qframe qseq sseq qlen slen stitle --header simple 2>> $RESULTS/diamond.err
 ```
 
 ## Filter results
 
-We will detect the olive known allergens to discard them from the analyses. To this purpose, we will use DIAMOND `r blast_mode` between the query transcriptome and *Olive allergens DB* with restrictive filters: E-value < `r evalue`, percentage of identical positions ≥ `r oleur_ident`% and percentage of alignment coverage ≥ `r oleur_align`%.
+We will detect the `r ORGANISM` known allergens to discard them from the analyses. To this purpose, we will use DIAMOND `r blast_mode` between the query transcriptome and *study organism allergens DB* with restrictive filters: E-value < `r evalue`, percentage of identical positions ≥ `r oleur_ident`% and percentage of alignment coverage ≥ `r oleur_align`%.
 
 The tentative transcripts (TT) that pass the filter are considered to be known olive tree allergens (TT~known~), while the other are a source of potential new allergens (TT~source~).
 
@@ -220,21 +207,21 @@ write.table(blast_filtered,
             quote = FALSE,
             sep = "\t",
             row.names = FALSE)
-message("DIAMOND filtered results for known Oleur allergens were saved in file ", file_name)
-# separate transcripts with/without Ole e x match
+message("DIAMOND filtered results for known ", ORGANISM, " allergens were saved in file ", file_name)
+# separate transcripts with/without known study organism allergens match
 ids_oleex <- unique(blast_filtered[, 1])
 ids_total <- gsub(" .*", "", names(myfasta))
-# keep IDs that are not Ole e x
+# keep IDs that are not known study organism allergens
 ids_no_oleex <- ids_total[!(ids_total %in% ids_oleex)]
-num_oleex <- length(ids_oleex) # proteins that are Ole e x for final table
-num_nooleex <- length(ids_no_oleex) # proteins that are NOT Ole e x for final table
-message("Transcripts that are Ole e x: ", num_oleex, "\n",
-        "Transcripts that are not Ole e x: ", num_nooleex)
+num_oleex <- length(ids_oleex) # proteins that are known study organism allergens for final table
+num_nooleex <- length(ids_no_oleex) # proteins that are NOT known study organism allergens for final table
+message("Transcripts that are known ", ORGANISM, " allergens: ", num_oleex, "\n",
+        "Transcripts that are not known ", ORGANISM, " allergens: ", num_nooleex)
 ```
 
-## Save Ole e x and not Ole e x proteins
+## Save known `r ORGANISM` allergen and not known `r ORGANISM` allergen proteins
 
-Save not Ole e x proteins.
+Save not known `r ORGANISM` allergen proteins.
 
 ```{r}
 # obtain FASTA file
@@ -245,10 +232,10 @@ if (!is.na(tmp["FALSE"])) warning(paste0(proteome_pollen_no_oleex, " does not co
 # save FASTA file
 file_name <- paste0(RES_DIR, "/", proteome_pollen_no_oleex)
 writeXStringSet(sub, file = file_name)
-message("Not Ole e x proteins were saved in file ", file_name)
+message("Not known ", ORGANISM, " allergen proteins were saved in file ", file_name)
 ```
 
-Save Ole e x proteins.
+Save known `r ORGANISM` allergen proteins.
 
 ```{r}
 # obtain FASTA file
@@ -259,29 +246,29 @@ if (!is.na(tmp["FALSE"])) warning(paste0(proteome_pollen_oleex, " does not conta
 # save FASTA file
 file_name <- paste0(RES_DIR, "/", proteome_pollen_oleex)
 writeXStringSet(sub, file = file_name)
-message("Ole e x allergen proteins were saved in file ", file_name)
+message("Known ", ORGANISM, " allergen proteins were saved in file ", file_name)
 ```
 
 # Detect cross-reactivity
 
 ## Prepare database
 
-We will create the diamond-formatted database needed for DIAMOND execution using *Non-olive allergens DB* protein FASTA file.
+We will create the diamond-formatted database needed for DIAMOND execution using *non-study organism allergens DB* protein FASTA file.
 
 ```{bash}
-$PATH_DIAMOND/diamond makedb --in $ALLERGEN_NO_OLEUR --db $RESULTS/$ALLERGENS_NO_SP_DB 2>> $RESULTS/diamond.err 1>> $RESULTS/diamond.out
+$PATH_DIAMOND/diamond makedb --in $ALLERGEN_NO_SP --db $RESULTS/$ALLERGENS_NO_SP_DB 2>> $RESULTS/diamond.err
 ```
 
 ## Launch DIAMOND
 
 ```{bash blast_allergens}
-# running search with no Ole e x allergens
-$PATH_DIAMOND/diamond $MODE --db $RESULTS/$ALLERGENS_NO_SP_DB --query $RESULTS/$PROTEOME_POLLEN_OLEEX --threads $THREADS --evalue $EVALUE --max-target-seqs $MAXTARG $SENSITIVITY --out $RESULTS/$DIAMOND_ALLERGENS --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score qframe qseq sseq qlen slen stitle --header simple 2>> $RESULTS/diamond.err 1>> $RESULTS/diamond.out
+# running search with known study organism allergens
+$PATH_DIAMOND/diamond $MODE --db $RESULTS/$ALLERGENS_NO_SP_DB --query $RESULTS/$PROTEOME_POLLEN_OLEEX --threads $THREADS --evalue $EVALUE --max-target-seqs $MAXTARG $SENSITIVITY --out $RESULTS/$DIAMOND_ALLERGENS --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score qframe qseq sseq qlen slen stitle --header simple 2>> $RESULTS/diamond.err
 ```
 
 ## Filter results
 
-To obtain information about the cross-reactivity between TT~known~ and allergens from other species, we will use DIAMOND `r blast_mode` to compare them with the *Non-olive allergens DB*.
+To obtain information about the cross-reactivity between TT~known~ and allergens from other species, we will use DIAMOND `r blast_mode` to compare them with the *non-study organism allergens DB*.
 
 A cross-reactivity allergen must meet one of the following requirements:
 
@@ -336,15 +323,15 @@ num_cross <- ifelse (is.null(blast_filtered), 0, length(unique(blast_filtered$qs
 ## Launch DIAMOND
 
 ```{bash blast_no_oleur}
-# running search with no Ole e x allergens
-$PATH_DIAMOND/diamond $MODE --db $RESULTS/$ALLERGENS_NO_SP_DB --query $RESULTS/$PROTEOME_POLLEN_NO_OLEEX --threads $THREADS --evalue $EVALUE --max-target-seqs $MAXTARG $SENSITIVITY --out $RESULTS/$DIAMOND_NO_OLEUR --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score qframe qseq sseq qlen slen stitle --header simple 2>> $RESULTS/diamond.err 1>> $RESULTS/diamond.out
+# running search with not known study organism allergens
+$PATH_DIAMOND/diamond $MODE --db $RESULTS/$ALLERGENS_NO_SP_DB --query $RESULTS/$PROTEOME_POLLEN_NO_OLEEX --threads $THREADS --evalue $EVALUE --max-target-seqs $MAXTARG $SENSITIVITY --out $RESULTS/$DIAMOND_NO_OLEUR --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score qframe qseq sseq qlen slen stitle --header simple 2>> $RESULTS/diamond.err
 ```
 
 ## Filter results
 
-The TT~source~ are compared with the *Non-olive allergens DB*, but using more lenient filtering parameters: percentage of identical positions ≥ `r p_ident`% and percentage of alignment coverage ≥ `r p_align`%.
+The TT~source~ are compared with the *non-study organism allergens DB*, but using more lenient filtering parameters: percentage of identical positions ≥ `r p_ident`% and percentage of alignment coverage ≥ `r p_align`%.
 
-Those transcripts are considered new olive pollen allergen candidates (TT~newcand~).
+Those transcripts are considered new `r ORGANISM` pollen allergen candidates (TT~newcand~).
 
 ```{r filter_blast_no_oleur}
 # load blast results
@@ -393,12 +380,15 @@ message("Allergen candidate proteins were saved in file ", file_name)
 
 ```{bash}
 # running search
-$PATH_DIAMOND/diamond $MODE --db $RESULTS/$ALLERGENS_SP_DB --query $RESULTS/$PROTEOME_WITH_ALLERGEN --threads $THREADS --evalue $EVALUE --max-target-seqs $MAXTARG $SENSITIVITY --out $RESULTS/$DIAMOND_OLEUR --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score qframe qseq sseq qlen slen stitle --header simple 2>> $RESULTS/diamond.err 1>> $RESULTS/diamond.out
+$PATH_DIAMOND/diamond $MODE --db $RESULTS/$ALLERGENS_SP_DB --query $RESULTS/$PROTEOME_WITH_ALLERGEN --threads $THREADS --evalue $EVALUE --max-target-seqs $MAXTARG $SENSITIVITY --out $RESULTS/$DIAMOND_OLEUR --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score qframe qseq sseq qlen slen stitle --header simple 2>> $RESULTS/diamond.err
+# remove DIAMOND databases
+rm $RESULTS/$ALLERGENS_SP_DB.dmnd
+rm $RESULTS/$ALLERGENS_NO_SP_DB.dmnd
 ```
 
 ## Filter results
 
-The TT~newcand~ are compared with the *Olive allergens DB*, but using more lenient filtering parameters: percentage of identical positions ≥ `r iso_ident`% and percentage of alignment coverage ≥ `r iso_align`%. Those are classified as new isoforms of the already known allergens (TT~iso~), while the TT~newcand~ that does not match with any allergen are considered as potential new olive pollen allergens (TT~new~).
+The TT~newcand~ are compared with the *study organism allergens DB*, but using more lenient filtering parameters: percentage of identical positions ≥ `r iso_ident`% and percentage of alignment coverage ≥ `r iso_align`%. Those are classified as new isoforms of the already known allergens (TT~iso~), while the TT~newcand~ that does not match with any allergen are considered as potential new `r ORGANISM` pollen allergens (TT~new~).
 
 ```{r}
 # load blast results
@@ -429,12 +419,12 @@ num_isoforms <- length(ids_isoforms)
 ids_new <- ids_candidates[!(ids_candidates %in% ids_isoforms)]
 num_new <- length(ids_new)
 message(paste0("New isoforms of the already known allergens: ", num_isoforms))
-message(paste0("Potential new olive pollen allergens: ", num_new))
+message(paste0("Potential new ", ORGANISM, " pollen allergens: ", num_new))
 ```
 
 ## Save new allergens
 
-Save other remote Ole e x isoforms.
+Save other remote known `r ORGANISM`allergen isoforms.
 
 ```{r}
 # obtain FASTA file
@@ -445,7 +435,7 @@ if (!is.na(tmp["FALSE"])) warning(paste0(proteome_isoforms, " does not contain a
 # save FASTA file
 file_name <- paste0(RES_DIR, "/", proteome_isoforms)
 writeXStringSet(sub, file = file_name)
-message("Other remote Ole e x isoform proteins were saved in file ", file_name)
+message("Other remote known ", ORGANISM, " allergen isoform proteins were saved in file ", file_name)
 ```
 
 Save new allergen candidates.
@@ -464,17 +454,17 @@ message("New allergen candidate proteins were saved in file ", file_name)
 
 # Summary table
 
-```{r summary, include=FALSE}
-table <- data.frame(rbind(c("Proteins/transcripts of your reference", num_ini),
-                          c("Ole e x proteins", num_oleex),
-                          c("**NOT** Ole e x proteins", num_nooleex),
-                          c("Ole e x with identity ≥ 50% with the complete allergen", num_id50),
-                          c("Ole e x with identity ≥ 35% within a window of 80 aa", num_id35),
-                          c("Ole e x with identity = 100% within a window of 8 aa", num_id100),
-                          c("Ole e x with cross-reactivity with other species allergens", num_cross),
-                          c("New olive pollen allergens candidates", num_candidates),
+```{r summary}
+table <- data.frame(rbind(c(paste0("Proteins/transcripts of ", ORGANISM), num_ini),
+                          c(paste0("Known ", ORGANISM, " allergen proteins"), num_oleex),
+                          c(paste0("**NOT** known ", ORGANISM, " allergen proteins"), num_nooleex),
+                          c(paste0("Known ", ORGANISM, " allergens with identity ≥ 50% with the complete allergen"), num_id50),
+                          c(paste0("Known ", ORGANISM, " allergens with identity ≥ 35% within a window of 80 aa"), num_id35),
+                          c(paste0("Known ", ORGANISM, " allergens with identity = 100% within a window of 8 aa"), num_id100),
+                          c(paste0("Known ", ORGANISM, " allergens with cross-reactivity with other species allergens"), num_cross),
+                          c(paste0("New ", ORGANISM, " pollen allergens candidates"), num_candidates),
                           c("New isoforms of the already known allergens", num_isoforms),
-                          c("Potentially new olive pollen allergens", num_new)))
+                          c(paste0("Potentially new ", ORGANISM, " pollen allergens"), num_new)))
 colnames(table) <- c("Category", "Amount")
 ```
 
@@ -482,7 +472,7 @@ colnames(table) <- c("Category", "Amount")
 table %>%
   kbl(caption = "Summary table") %>%
   kable_minimal() %>%
-  pack_rows("Detect known Oleur allergens (Ole e x)", 2, 3,
+  pack_rows(paste0("Detect known ", ORGANISM, " allergens"), 2, 3,
             label_row_css = "background-color: #DD4814; color: #fff") %>%
   pack_rows("Detect cross-reactivity", 4, 7,
             label_row_css = "background-color: #DD4814; color: #fff") %>%
