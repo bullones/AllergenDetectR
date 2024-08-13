@@ -74,7 +74,7 @@ where `{FASTA_TYPE}` indicates the type of DIAMOND that has been launched (blast
 The folder will contain:
 
 * An interactive **HTML report** called ` Report.html` with the results and explanation of each saved file.
-* **Eight tables in `tsv` format** for DIAMOND results (before and after filtering).
+* Eight **tables in `tsv` format** for DIAMOND results (before and after filtering).
 	+ `diamond_allergens.tsv`:
 	+ `diamond_allergens_filtered.tsv`:
 	+ `diamond_{SP}.tsv`:
@@ -83,18 +83,13 @@ The folder will contain:
 	+ `diamond_{SP}_known_allergens_filtered.tsv`:
 	+ `diamond_no_{SP}.tsv`:
 	+ `diamond_no_{SP}_filtered.tsv`:
-* **Three FASTA files** to save the protein of interest sequences.
+* Five **FASTA files** to save the protein of interest sequences.
 	+ `proteins_isoforms.fasta`:
 	+ `proteins_new_allergens.fasta`:
 	+ `proteins_with_allergen.fasta`:
-* **Two FASTA files** to save the proteins that are known allergens of the study organism, and those that are not known allergens of the study organism.
-	+ `proteome_pollen_{SP}_known_allergens.fasta`:
-	+ `proteome_pollen_no_{SP}_known_allergens.fasta`:
-* **Two DIAMOND-formated databases** needed for the DIAMOND analyses.
-	+ `allergens_{SP}_db.dmnd`:
-	+ `allergens_no_{SP}_db.dmnd`:
-* **One DIAMOND error file** to track possible errors.
-	+ `diamond.err`:
+	+ `proteome_pollen_{SP}_known_allergens.fasta`: proteins that are known allergens of the study organism.
+	+ `proteome_pollen_no_{SP}_known_allergens.fasta`: proteins that are not known allergens of the study organism.
+* One **DIAMOND error file** called `diamond.err` to track possible errors.
 
 where `{SP}` indicates the study organism.
 
